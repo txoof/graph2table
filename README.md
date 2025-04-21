@@ -7,6 +7,8 @@
     - [Modeling](#modeling)
     - [Results](#results)
   - [Data Extraction](#data-extraction)
+    - [image\_1.png](#image_1png)
+    - [image\_2.png](#image_2png)
 
 ## Environment
 
@@ -328,3 +330,114 @@ Running the model in Inference Mode shows extremely good results with all of the
 
 ## Data Extraction
 
+### image_1.png
+
+Extract tabular data from the image below
+
+![image_1](./assets/image_1.png)
+
+#### Part A - Extract and Print Title & Bounding Boxes
+
+The title was extracted using `easyocr` by loading the image, resizing it and converting to gray scale and then using the easyocr `readetext` class. Several iterations were required to find the appropriate pre-processing filters and parameters for easyocr. Adjusting the contrast and manipulating the width_ths values to accurately separate values on the X-Axis was required.
+
+```
+results = reader.readtext(gray, 
+                          contrast_ths=0.3, # try to improve recognizing small digits
+                          adjust_contrast=0.5, 
+                          paragraph=False,
+                          decoder='beamsearch', # less greedy decoder; try to separate x-axis labels
+                          width_ths=.35, # less aggressive merging of words
+                          rotation_info=[90, 180 ,270]) # allow any possible rotation (good for y-axis)
+```
+
+![image_1_bboxes](./assets/image_1_bboxes.png)
+
+Ultimately, no single configuration could accurately identify all of the text. Sometimes the month names were garbled or merged into a single string, and at other times, the data labels were interpreted as characters such as "U" or "~". The best version has an error in February and labels the value as "5z" instead of 2.5.
+
+#### Part B - Extract CSV Data
+
+The data was extracted by searching the OCR results for month names and numerical values. Those values were sorted by using the midpoint of the top left and bottom right X values. Based on the midpoint for the labels and the values, the two sets of data could be zipped together and output as a [CSV](./assets/image_1.csv).
+
+| month        | value  |
+| ------------ | ------ |
+| January      | 7      |
+| **February** | **5z** |
+| March        | 3.5    |
+| April        | 4.5    |
+| May          | 2.4    |
+| June         | 2      |
+| July         | 1.8    |
+| August       | 2.8    |
+| September    | 2      |
+| October      | 2      |
+| November     | 3      |
+| December     | 5      |
+
+No further processing was required of the image. 
+
+### image_2.png
+
+Extract tabular data from the image below
+
+![image_2](./assets/image_2.png)
+
+#### Part A - Extract and Print Title & Bounding Boxes
+
+The title, X and Y axis values and categories were extracted using `easyocr`. This was rather challenging and many iterations were required to determine the appropriate parameters to extract the text values. To make this task easier, the image was enlarged and a gaussian blur was applied to help reduce noise that was confusing the text extraction.
+
+![Image_2](./assets/image_2_bboxes.png)
+
+The most relevant OCR parameters that was required was the `rotation_info=[270]`. This feature allowed accurate extraction of the Y-axis title. The Y-axis was extracted as three separate bounding boxes and needed to be reassembled based sorting the y values for each bounding box.
+
+The X-axis title was similarly difficult to extract because there were two extracted text that fell under the category labels: "Type of activity", "Practicle".  Sorting the text by Y value and taking the lowest two provided those labels. I had to manually choose the upper most to provide the X-axis label.
+
+Extracting the Y-axis values was relatively easy by filtering for results that started with a digit.
+
+The various text boxes were recorded using the mid-point X, Y value for each.
+
+#### Part B - Extract Bar Height Data
+
+Extracting the height of the bars proved to be exceptionally challenging. Straight detection of contours was confounded by the yellow background grid creating odd shaped blobs that could not be easily differentiated.
+
+To solve this, the image was converted in to hue, saturation and value images. 
+
+![Image_2 HSV](./assets/image_2_HSV.png)
+
+The hue and saturation images proved to be the most data rich for this project. By masking the saturation image values that were tweaked to provide just the non-yellow portions and the highly saturated portions of the image. Those images were logically and'ed together to provide a mask that contained only bars and a bit of the cartoon character.
+
+![Image_2 HS](./assets/image_2_SH_mask.png)
+
+This resulted in four, well defined bounding boxes that were labeled with the X, Y top corner coordinates.
+
+![Image_2 bar bounding boxes](./assets/Image_2_bar_bounding_boxes.png)
+
+Using the midpoint values of the Y-Axis values recorded earlier, the height of the bars were matched with the closest matching label.
+
+```PYTHON
+# match bounding boxes Y value to nearst match in y_value axis list
+
+csv_data = []
+for bi, b in enumerate(boxes):
+    y = b[1]
+    last = 1e15
+    my_idx = 0
+    for i, v in enumerate(y_vals):
+        this = abs(y - v[2])
+        if this <= last:
+            last = this
+            my_idx = i
+        
+    print(f'label: {x_labels[bi][0]} y: {y}, v: {y_vals[my_idx][0]}')
+    csv_data.append((x_labels[bi][0], y_vals[my_idx][0]))
+    
+```
+#### Part B - Write CSV Data
+
+The CSV data was written to a file using the X and Y labels for column headers: [image_2.csv](./assets/image_2.csv)
+
+| Type of activity | Number of children |
+|------------------|--------------------|
+| Reading          | 8                  |
+| Playing          | 18                 |
+| Baking           | 10                 |
+| Washing hands    | 14                 |
