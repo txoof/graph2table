@@ -1,14 +1,51 @@
-# Graph2Table April 2025
+# Graph2Table April 2025 <!-- omit from toc -->
 
-- [Graph2Table April 2025](#graph2table-april-2025)
-  - [Environment](#environment)
-  - [CNN Training](#cnn-training)
-    - [Preprocessing](#preprocessing)
-    - [Modeling](#modeling)
-    - [Results](#results)
-  - [Data Extraction](#data-extraction)
-    - [image\_1.png](#image_1png)
-    - [image\_2.png](#image_2png)
+- [Graph2Table: Automated Chart Classification and Data Extraction](#graph2table-automated-chart-classification-and-data-extraction)
+  - [Project Overview](#project-overview)
+  - [Key Features](#key-features)
+  - [Technical Approach](#technical-approach)
+  - [Results](#results)
+- [Environment](#environment)
+- [CNN Training](#cnn-training)
+  - [Preprocessing](#preprocessing)
+  - [Modeling](#modeling)
+  - [Results](#results-1)
+- [Data Extraction](#data-extraction)
+
+## Graph2Table: Automated Chart Classification and Data Extraction
+
+**Graph2Table** is a machine learning project that automatically classifies chart types and extracts tabular data from images of graphs and charts. The system uses computer vision and OCR techniques to convert visual data representations back into structured, machine-readable formats.
+
+### Project Overview
+
+This project tackles a two-part challenge:
+1. **Chart Classification**: Accurately identifying chart types (bar graphs, line graphs, scatter plots, pie charts, and flowcharts) from images
+2. **Data Extraction**: Converting visual chart data back into tabular CSV format using OCR and image processing techniques
+
+### Key Features
+
+- **High-Performance Classification**: Achieves 97.98% accuracy using transfer learning with EfficientNetB0
+- **Multi-Class Support**: Handles five chart types with precision/recall scores above 95% for each class
+- **Robust Data Pipeline**: Includes comprehensive data cleaning, deduplication, and stratified train/validation/test splits
+- **OCR Integration**: Uses EasyOCR for text extraction from chart titles, axes, and labels
+- **Advanced Image Processing**: Employs HSV color space manipulation and contour detection for bar height extraction
+
+### Technical Approach
+
+The project demonstrates a systematic machine learning workflow including:
+- **Iterative Model Development**: Progressed from simple CNN architectures to transfer learning, documenting performance improvements at each stage
+- **Error Analysis**: Identified and addressed key confusion between line graphs and scatter plots through resolution improvements
+- **Data Quality Control**: Implemented thorough dataset cleaning including format standardization, deduplication, and class balance verification
+- **Rigorous Evaluation**: Comprehensive metrics tracking including confusion matrices, per-class F1 scores, and inference validation
+
+### Results
+
+The final transfer learning model achieves near-perfect classification with only 6 total confusions across 297 test samples, successfully resolving the challenging line graph/scatter plot distinction that plagued earlier models.
+
+---
+
+This project showcases practical computer vision techniques for document understanding and demonstrates how transfer learning can dramatically improve performance over custom CNN architectures for specialized image classification tasks.
+
 
 ## Environment
 
@@ -330,7 +367,7 @@ Running the model in Inference Mode shows extremely good results with all of the
 
 ## Data Extraction
 
-### image_1.png
+**image_1.png**
 
 Extract tabular data from the image below
 
@@ -375,7 +412,7 @@ The data was extracted by searching the OCR results for month names and numerica
 
 No further processing was required of the image. 
 
-### image_2.png
+**image_2.png**
 
 Extract tabular data from the image below
 
